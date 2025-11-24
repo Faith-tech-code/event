@@ -37,8 +37,12 @@
         </form>
     </div>
 
+    <!-- Data scripts must be included first -->
+    <script src="events-data.js"></script>
     <script src="app.js"></script>
-it     <script>
+    <script>
+        initializeData(); // Ensure data is loaded from events-data.js if not in localStorage
+
         document.getElementById('registrationForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const urlParams = new URLSearchParams(window.location.search);

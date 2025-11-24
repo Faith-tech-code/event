@@ -15,8 +15,11 @@
         <div id="checked-in-list"></div>
     </div>
 
+    <script src="events-data.js"></script>
     <script src="app.js"></script>
     <script>
+        initializeData(); // Ensure data is loaded from events-data.js if not in localStorage
+
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const eventId = urlParams.get('eventId');

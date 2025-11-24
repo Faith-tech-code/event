@@ -23,9 +23,12 @@
 
     <!-- QR Code Scanning Library -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="events-data.js"></script>
     <script src="app.js"></script>
     <script>
         let eventId; // Make eventId globally accessible in this script
+
+        initializeData(); // Ensure data is loaded from events-data.js if not in localStorage
 
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
