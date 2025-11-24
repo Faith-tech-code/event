@@ -31,21 +31,21 @@
                 document.getElementById('back-to-dashboard').onclick = () => window.location.href = `dashboard.html?eventId=${eventId}`;
             }
 
-            const attendees = getAttendees(eventId);
-            const checkedInAttendees = attendees.filter(a => a.checkedIn);
+            const ticketsForEvent = getTicketsForEvent(eventId);
+            const checkedInTickets = ticketsForEvent.filter(t => t.checkedIn);
             const listElement = document.getElementById('checked-in-list');
 
-            if (checkedInAttendees.length === 0) {
+            if (checkedInTickets.length === 0) {
                 listElement.innerHTML = '<p>No attendees have checked in yet.</p>';
                 return;
             }
 
-            checkedInAttendees
+            checkedInTickets
                 .sort((a, b) => new Date(b.checkInTime) - new Date(a.checkInTime)) // Show most recent first
-                .forEach(attendee => {
+                .forEach(ticket => {
                     const card = document.createElement('div');
                     card.className = 'attendee-card';
-                    card.innerHTML = `<strong>${attendee.names.join(', ')}</strong> checked in at ${new Date(attendee.checkInTime).toLocaleTimeString()}`;
+                    card.innerHTML = `<strong>${ticket.names.join(', ')}</strong> checked in at ${new Date(ticket.checkInTime).toLocaleTimeString()}`;
                     listElement.appendChild(card);
                 });
         };

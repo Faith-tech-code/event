@@ -3,28 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendee Tickets</title>
+    <title>Event Tickets</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header class="main-header">
-        <div class="container header-container">
-            <a href="/index.html" class="header-brand">Faith Events Co</a>
-            <nav class="main-nav">
-                <a id="back-to-dashboard-nav" href="#">Event Dashboard</a>
-            </nav>
-        </div>
-    </header>
     <div class="container">
+        <button id="back-to-dashboard" style="float: right;">Back to Dashboard</button>
         <h2 id="event-name-header" style="text-align: center; color: #555;"></h2>
-        <h1>Attendee Tickets</h1>
-        <div id="attendee-list"></div>
+        <h1>Event Tickets</h1>
+        <div id="tickets-list"></div>
     </div>
 
-    <!-- QR Code Generation Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="app.js"></script>
     <script>
         window.onload = function() {
@@ -35,182 +25,30 @@
                 return;
             }
 
-            const attendees = getAttendees(eventId);
-            const listElement = document.getElementById('attendee-list');
-
-            if (attendees.length === 0) {
-                listElement.innerHTML = '<p>No attendees registered yet. <a href="register.html">Register one now</a>.</p>';
-                return;
-            }
-
             const event = getEventById(eventId);
             if (event) {
                 document.getElementById('event-name-header').textContent = `Tickets for: ${event.name}`;
-                document.getElementById('back-to-dashboard-nav').href = `dashboard.html?eventId=${eventId}`;
+                document.getElementById('back-to-dashboard').onclick = () => window.location.href = `dashboard.html?eventId=${eventId}`;
             }
 
-            attendees.forEach(attendee => {
-                const card = document.createElement('div');
-                card.className = 'attendee-card';
-                card.innerHTML = `
-                    <div class="attendee-info">
-                        <strong>Name(s):</strong> ${attendee.names.join(', ')}<br>
-                        <strong>Email:</strong> ${attendee.email || 'N/A'}<br>
-                        <strong>Phone:</strong> ${attendee.phone || 'N/A'}
-                        <div class="ticket-actions" style="margin-top: 10px;">
-                            <button onclick="downloadJPG('${attendee.id}', '${attendee.names[0]}')">Download JPG</button>
-                            <button onclick="downloadPDF('${attendee.id}', '${attendee.names.join(', ')}', '${attendee.email}')">Download PDF</button>
-                            <button onclick="shareTicket('${attendee.id}', '${attendee.names[0]}')">Share</button>
-                        </div>
-                    </div>
-                    <div class="qr-code-container" id="qr-code-container-${attendee.id}"></div>
-                `;
-                listElement.appendChild(card);
-                const qrContainer = document.getElementById(`qr-code-container-${attendee.id}`);
-                new QRCode(qrContainer, {
-                    text: attendee.id,
-                    width: 128,
-                    height: 128
-                });
-            });
-        };
+            const ticketsForEvent = getTicketsForEvent(eventId);
+            const listElement = document.getElementById('tickets-list');
 
-        function getQRCanvas(attendeeId) {
-            const qrContainer = document.getElementById(`qr-code-container-${attendeeId}`);
-            return qrContainer.querySelector('canvas');
-        }
-
-        function downloadJPG(attendeeId, attendeeName) {
-            const canvas = getQRCanvas(attendeeId);
-            if (!canvas) return;
-            const link = document.createElement('a');
-            link.download = `${attendeeName}-ticket.jpg`;
-            link.href = canvas.toDataURL('image/jpeg', 1.0);
-            link.click();
-        }
-
-        function downloadPDF(attendeeId, attendeeNames, attendeeEmail) {
-            const canvas = getQRCanvas(attendeeId);
-            if (!canvas) return;
-            const qrImage = canvas.toDataURL('image/jpeg', 1.0);
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const eventId = urlParams.get('eventId');
-            const event = getEventById(eventId);
-            if (!event) return;
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a6' // A6 is a nice size for a mobile ticket
-            });
-
-            const docWidth = doc.internal.pageSize.getWidth();
-            const docHeight = doc.internal.pageSize.getHeight();
-            const textMargin = 15;
-
-            // Background Color
-            doc.setFillColor('#2d1a93');
-            doc.rect(0, 0, docWidth, docHeight, 'F');
-
-            // Decorative Circles
-            doc.setFillColor('#f8ef23');
-            const contentArea = { top: 15, bottom: 145, left: 15, right: docWidth - 15 };
-            for (let i = 0; i < 50; i++) { // Increased to 50 circles
-                let x, y;
-                const rand = Math.random(); // Get a random number between 0 and 1
-
-                if (rand < 0.35) { // 35% chance for Left side
-                    x = Math.random() * contentArea.left;
-                    y = Math.random() * docHeight;
-                } else if (rand < 0.70) { // 35% chance for Right side
-                    x = contentArea.right + Math.random() * (docWidth - contentArea.right);
-                    y = Math.random() * docHeight;
-                } else if (rand < 0.90) { // 20% chance for Top
-                    x = Math.random() * docWidth;
-                    y = Math.random() * contentArea.top;
-                } else { // 10% chance for Bottom
-                    x = Math.random() * docWidth;
-                    y = contentArea.bottom + Math.random() * (docHeight - contentArea.bottom);
-                }
-                doc.circle(x, y, Math.random() * 1.5 + 0.5, 'F'); // Random radius
-            }
-
-            // Set text color to white for the main content
-            doc.setTextColor('#ffffff');
-
-            // Event Details
-            doc.setFontSize(16); // Reduced font size for better fit
-            doc.setFont(undefined, 'bold');
-            doc.text(event.name, docWidth / 2, 20, { align: 'center', maxWidth: docWidth - (textMargin * 2) });
-
-            doc.setFont(undefined, 'normal');
-            doc.setFontSize(12);
-            doc.text(`Date: ${event.date}`, docWidth / 2, 40, { align: 'center' });
-            doc.text(`Venue: ${event.venue}`, docWidth / 2, 48, { align: 'center' });
-            doc.text(`Time: ${event.time}`, docWidth / 2, 56, { align: 'center' });
-
-            // Attendee Details
-            doc.text(`Ticket for: ${attendeeNames}`, docWidth / 2, 70, { align: 'center' });
-
-            // QR Code
-            const qrCodeY = 80;
-            const qrCodeSize = 55;
-            doc.addImage(qrImage, 'JPEG', (docWidth - qrCodeSize) / 2, qrCodeY, qrCodeSize, qrCodeSize);
-
-            // Footer text
-            doc.setFontSize(7);
-            // doc.setTextColor(150); // Keep text color white
-
-            const textPart1 = 'Created with ';
-            const textPart2 = ' by Faith Creative Studio | 0773402318';
-
-            const heartSize = 2; // The size of our heart emoji
-            const spacing = 1; // Space between 'with' and heart, and heart and 'by'
-
-            // Calculate the total width and the starting position for centering
-            const totalWidth = doc.getTextWidth(textPart1) + spacing + heartSize + spacing + doc.getTextWidth(textPart2);
-            let currentX = (docWidth - totalWidth) / 2;
-            const yPos = qrCodeY + qrCodeSize + 8;
-
-            // First part of the text
-            doc.text(textPart1, currentX, yPos);
-            currentX += doc.getTextWidth(textPart1) + spacing;
-
-            // Draw the heart
-            doc.setFillColor(255, 0, 0); // Red color
-            doc.triangle(currentX, yPos - 0.5, currentX + heartSize, yPos - 0.5, currentX + heartSize / 2, yPos - 2, 'F');
-            doc.circle(currentX + heartSize / 4, yPos - 1.5, heartSize / 3, 'F');
-            doc.circle(currentX + (heartSize * 3 / 4), yPos - 1.5, heartSize / 3, 'F');
-            currentX += heartSize + spacing;
-
-            // Second part of the text with the phone number
-            doc.text(textPart2, currentX, yPos);
-
-            doc.save(`${attendeeNames.split(',')[0]}-ticket.pdf`);
-        }
-
-        async function shareTicket(attendeeId, attendeeName) {
-            const canvas = getQRCanvas(attendeeId);
-            if (!navigator.share) {
-                alert("Web Share API is not supported in your browser. Try downloading the ticket instead.");
+            if (ticketsForEvent.length === 0) {
+                listElement.innerHTML = '<p>No tickets found for this event.</p>';
                 return;
             }
 
-            canvas.toBlob(async (blob) => {
-                const file = new File([blob], `${attendeeName}-ticket.jpg`, { type: 'image/jpeg' });
-                try {
-                    await navigator.share({
-                        title: 'Your Event Ticket',
-                        text: `Here is the ticket for ${attendeeName}.`,
-                        files: [file]
-                    });
-                } catch (err) {
-                    console.error("Share failed:", err.message);
-                }
-            }, 'image/jpeg');
-        }
+            ticketsForEvent
+                .sort((a, b) => a.names[0].localeCompare(b.names[0])) // Sort by first name
+                .forEach(ticket => {
+                    const card = document.createElement('div');
+                    card.className = 'attendee-card';
+                    const checkedInStatus = ticket.checkedIn ? `Checked in at ${new Date(ticket.checkInTime).toLocaleTimeString()}` : 'Not checked in';
+                    card.innerHTML = `<strong>${ticket.names.join(', ')}</strong> - <em>${checkedInStatus}</em>`;
+                    listElement.appendChild(card);
+                });
+        };
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
