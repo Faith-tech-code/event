@@ -1,4 +1,4 @@
-const CACHE_NAME = 'event-manager-v2';
+const CACHE_NAME = 'event-manager-v3';
 const urlsToCache = [
     '/',
     'index.html',
@@ -12,7 +12,8 @@ const urlsToCache = [
     'manifest.json',
     'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-    'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js'
+    'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
 ];
 
 // Install a service worker

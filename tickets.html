@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,99 @@
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="styles.css">
 </head>
+<style>
+    .ticket-details-card {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        background-color: #f9f9f9;
+    }
+
+    .ticket-summary {
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .ticket-content {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .ticket-info {
+        flex-grow: 1;
+    }
+
+    .qr-code-container {
+        flex-shrink: 0;
+        background: white;
+        border: 1px solid #ddd;
+        /* Use flexbox to center the QR code inside */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* New styles for the downloadable ticket layout */
+    .ticket-layout {
+        display: block; /* Change to block for vertical layout */
+        padding: 15px 5px 5px 5px; /* Reduced bottom padding to remove extra space */
+        background-color: white;
+        text-align: center; /* Center align content */
+    }
+    .ticket-header, .ticket-body, .ticket-footer {
+        padding: 5px 0; /* Slightly increased vertical padding for better spacing */
+        position: relative; /* Establish positioning context for z-index */
+        z-index: 2; /* Place text content above the circles */
+
+    }
+    .ticket-body .qr-code-container {
+        margin: 5px auto; /* Reduced margin and centers the QR code block */
+        width: 110px; /* Set a fixed width for the container */
+        height: 110px; /* Set a fixed height to match width */
+    }
+    .ticket-footer {
+        text-align: center;
+        margin-top: 5px;
+        padding-top: 2px;
+        font-size: 0.8em;
+        color: #777;
+    }
+
+    /* Special styles for the Power FM event ticket */
+    .powerfm-ticket-bg {
+        background-color: #2d1a93 !important;
+        color: white;
+        position: relative;
+        overflow: hidden; /* Keeps circles contained */
+    }
+    .powerfm-ticket-bg .ticket-layout {
+        background-color: transparent; /* Allow parent background to show through */
+    }
+    .powerfm-ticket-bg h3, .powerfm-ticket-bg p, .powerfm-ticket-bg .ticket-footer {
+        color: white;
+    }
+
+    .deco-circle {
+        position: absolute;
+        background-color: #f8ef23;
+        border-radius: 50%;
+        z-index: 1; /* Place circles on a lower layer */
+    }
+    .circle-1 { width: 100px; height: 100px; top: -50px; left: -50px; }
+    .circle-2 { width: 50px; height: 50px; top: 20%; right: -25px; }
+    .circle-3 { width: 80px; height: 80px; bottom: 100px; left: -30px; } /* Moved up and to the side */
+    .circle-4 { width: 90px; height: 70px; bottom: 2px; right: -80px; } /* Pushed further down and right */
+    .circle-5 { width: 30px; height: 30px; bottom: 25px; left: 45%; } /* Moved circle up */
+
+
+</style>
+
 <body>
     <div class="container">
         <button id="back-to-dashboard" style="float: right;">Back to Dashboard</button>
@@ -15,7 +109,12 @@
         <div id="tickets-list"></div>
     </div>
 
+    <!-- Libraries for QR Code, PDF, and JPG generation -->
     <script src="app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <script>
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -39,16 +138,127 @@
                 return;
             }
 
+            const { jsPDF } = window.jspdf;
+
             ticketsForEvent
                 .sort((a, b) => a.names[0].localeCompare(b.names[0])) // Sort by first name
-                .forEach(ticket => {
-                    const card = document.createElement('div');
-                    card.className = 'attendee-card';
-                    const checkedInStatus = ticket.checkedIn ? `Checked in at ${new Date(ticket.checkInTime).toLocaleTimeString()}` : 'Not checked in';
-                    card.innerHTML = `<strong>${ticket.names.join(', ')}</strong> - <em>${checkedInStatus}</em>`;
-                    listElement.appendChild(card);
+                .forEach((ticket, index) => {
+                    const ticketContentId = `ticket-content-${ticket.id}`;
+                    const detailsElement = document.createElement('details');
+                    detailsElement.className = 'ticket-details-card';
+
+                    const summaryElement = document.createElement('summary');
+                    summaryElement.className = 'ticket-summary';
+                    const checkedInStatus = ticket.checkedIn ? ` (Checked-in)` : ` (Not Checked-in)`;
+                    summaryElement.innerHTML = `${ticket.names.join(', ')} <em style="font-weight: normal;">${checkedInStatus}</em>`;
+
+                    const contentWrapper = document.createElement('div');
+
+                    // --- Conditional Styling for Power FM Event ---
+                    const isPowerFmEvent = event.name.toLowerCase() === 'power fm love family fun day';
+                    let backgroundClass = '';
+                    let decorativeCircles = '';
+
+                    if (isPowerFmEvent) {
+                        backgroundClass = 'powerfm-ticket-bg';
+                        decorativeCircles = `
+                            <div class="deco-circle circle-1"></div>
+                            <div class="deco-circle circle-2"></div>
+                            <div class="deco-circle circle-3"></div>
+                            <div class="deco-circle circle-4"></div>
+                            <div class="deco-circle circle-5"></div>
+                        `;
+                    }
+
+                    // The ticket's visual content now has a unique ID for capturing
+                    const content = `
+                        <div id="${ticketContentId}" class="${backgroundClass}" style="border: 1px solid #ddd; border-radius: 8px; max-width: 320px; margin: auto;">
+                            <div class="ticket-layout">${decorativeCircles}
+                                <div class="ticket-header">
+                                    <h3>${event.name}</h3>
+                                    <p>${event.date} at ${event.time} | ${event.venue}</p>
+                                    <p><strong>Attendee(s):</strong> ${ticket.names.join(', ')}</p>
+                                </div>
+                                <div class="ticket-body">
+                                    <div class="qr-code-container" id="qr-${ticket.id}"></div>
+                                </div>
+                                <div class="ticket-footer">Created with ❤️ By Faith Creative Studio 0773402318</div>
+                            </div>
+                        </div>
+                        <div class="actions" style="margin-top: 15px;">
+                            <button onclick="downloadAsPDF('${ticketContentId}', '${ticket.names[0]}-ticket.pdf')">Download PDF</button>
+                            <button onclick="downloadAsJPG('${ticketContentId}', '${ticket.names[0]}-ticket.jpg')">Download JPG</button>
+                            <button onclick="shareTicket('${ticketContentId}', '${ticket.names.join(', ')}', '${event.name}')">Share Ticket</button>
+                        </div>
+                    `;
+                    contentWrapper.innerHTML = content;
+
+                    detailsElement.appendChild(summaryElement);
+                    detailsElement.appendChild(contentWrapper);
+                    listElement.appendChild(detailsElement);
+
+                    // Generate QR Code
+                    new QRCode(document.getElementById(`qr-${ticket.id}`), {
+                        text: ticket.id,
+                        width: 90,
+                        height: 90,
+                    });
                 });
         };
+
+        function downloadAs(elementId, filename, type) {
+            const ticketElement = document.getElementById(elementId);
+            if (!ticketElement) return;
+
+            html2canvas(ticketElement, { scale: 2 }).then(canvas => {
+                if (type === 'pdf') {
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new jspdf.jsPDF({
+                        orientation: 'portrait',
+                        unit: 'px',
+                        format: [canvas.width, canvas.height]
+                    });
+                    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                    pdf.save(filename);
+                } else { // jpg
+                    const link = document.createElement('a');
+                    link.download = filename;
+                    link.href = canvas.toDataURL('image/jpeg', 0.9);
+                    link.click();
+                }
+            });
+        }
+
+        function downloadAsPDF(elementId, filename) {
+            downloadAs(elementId, filename, 'pdf');
+        }
+
+        function downloadAsJPG(elementId, filename) {
+            downloadAs(elementId, filename, 'jpg');
+        }
+
+        async function shareTicket(elementId, names, eventName) {
+            if (!navigator.share) {
+                alert('Web Share API is not available on your browser.');
+                return;
+            }
+
+            const ticketElement = document.getElementById(elementId);
+            try {
+                const canvas = await html2canvas(ticketElement, { scale: 2 });
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                const file = new File([blob], 'ticket.png', { type: 'image/png' });
+
+                await navigator.share({
+                    title: `Ticket for ${eventName}`,
+                    text: `Here is the event ticket for ${names}.`,
+                    files: [file],
+                });
+            } catch (error) {
+                console.error('Error sharing ticket:', error);
+                alert('Could not share the ticket. See console for details.');
+            }
+        }
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -59,4 +269,5 @@
         }
     </script>
 </body>
+
 </html>
