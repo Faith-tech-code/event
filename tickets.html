@@ -110,12 +110,15 @@
     </div>
 
     <!-- Libraries for QR Code, PDF, and JPG generation -->
+    <script src="events-data.js"></script>
     <script src="app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script>
+        initializeData(); // Ensure data is loaded from events-data.js if not in localStorage
+
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const eventId = urlParams.get('eventId');
