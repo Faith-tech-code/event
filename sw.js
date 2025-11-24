@@ -2,8 +2,8 @@ const CACHE_NAME = 'event-manager-v1';
 const urlsToCache = [
     '/',
     'index.html',
-    'events.html',
     'register.html',
+    'dashboard.html',
     'tickets.html',
     'scan.html',
     'checked-in.html',

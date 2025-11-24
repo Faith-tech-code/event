@@ -31,13 +31,13 @@
             const urlParams = new URLSearchParams(window.location.search);
             eventId = urlParams.get('eventId');
             if (!eventId) {
-                window.location.href = 'events.html';
+                window.location.href = 'index.html';
                 return;
             }
             const event = getEventById(eventId);
             if (event) {
                 document.getElementById('event-name-header').textContent = `Scanning for: ${event.name}`;
-                document.getElementById('back-to-dashboard').onclick = () => window.location.href = `index.html?eventId=${eventId}`;
+                document.getElementById('back-to-dashboard').onclick = () => window.location.href = `dashboard.html?eventId=${eventId}`;
             }
         };
         const video = document.getElementById('video');

@@ -8,8 +8,15 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <header class="main-header">
+        <div class="container header-container">
+            <a href="/index.html" class="header-brand">Faith Events Co</a>
+            <nav class="main-nav">
+                <a id="back-to-dashboard-nav" href="#">Event Dashboard</a>
+            </nav>
+        </div>
+    </header>
     <div class="container">
-        <button id="back-to-dashboard" style="float: right;">Back to Dashboard</button>
         <h2 id="event-name-header" style="text-align: center; color: #555;"></h2>
         <h1>Register New Attendee</h1>
         <div style="margin-bottom: 20px;">
@@ -105,13 +112,13 @@
             const urlParams = new URLSearchParams(window.location.search);
             const eventId = urlParams.get('eventId');
             if (!eventId) {
-                window.location.href = 'events.html';
+                window.location.href = 'index.html';
                 return;
             }
             const event = getEventById(eventId);
             if (event) {
                 document.getElementById('event-name-header').textContent = `Registering for: ${event.name}`;
-                document.getElementById('back-to-dashboard').onclick = () => window.location.href = `index.html?eventId=${eventId}`;
+                document.getElementById('back-to-dashboard-nav').href = `dashboard.html?eventId=${eventId}`;
             }
 
             updateRegistrationForm();

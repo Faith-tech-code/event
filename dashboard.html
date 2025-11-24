@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Dashboard</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="main-header">
+    <div class="container header-container">
+        <a href="/index.html" class="header-brand">Faith Events Co</a>
+        <nav class="main-nav">
+            <a href="/index.html">All Events</a>
+        </nav>
+    </div>
+</header>
+<div class="container">
+  <h1 id="event-name">Event Dashboard</h1>
+  <div id="event-details" style="text-align: center; margin-bottom: 20px;"></div>
+
+  <div id="dashboard-links">
+    <div class="nav-menu">
+      <a id="register-link" class="button">Register Attendee</a>
+      <a id="tickets-link" class="button">View Tickets</a>
+    </div>
+    
+    <div class="admin">
+      <h2>Admin Area</h2>
+      <a id="scan-link" class="button">Scan QR Code</a>
+      <a id="checked-in-link" class="button">View Checked-in Attendees</a>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+<script>
+  window.onload = function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventId = urlParams.get('eventId');
+
+    if (!eventId) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    const event = getEventById(eventId);
+    if (!event) {
+      alert('Event not found!');
+      window.location.href = 'index.html';
+      return;
+    }
+
+    document.getElementById('event-name').textContent = event.name;
+    document.getElementById('event-details').innerHTML = `<strong>Date:</strong> ${event.date} | <strong>Venue:</strong> ${event.venue} | <strong>Time:</strong> ${event.time}`;
+    document.getElementById('register-link').href = `register.html?eventId=${eventId}`;
+    document.getElementById('tickets-link').href = `tickets.html?eventId=${eventId}`;
+    document.getElementById('scan-link').href = `scan.html?eventId=${eventId}`;
+    document.getElementById('checked-in-link').href = `checked-in.html?eventId=${eventId}`;
+  };
+</script>
+</body>
+</html>
