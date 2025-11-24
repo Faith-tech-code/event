@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Events</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Event Manager</h1>
+        
+        <h2 id="form-title">Create New Event</h2>
+        <form id="eventForm">
+            <input type="hidden" id="editingEventId">
+            <input type="text" id="eventName" placeholder="Event Name" required>
+            <input type="date" id="eventDate" required>
+            <input type="text" id="eventVenue" placeholder="Abha" required>
+            <input type="time" id="eventTime" required>
+            <button type="submit" id="submit-button">Create Event</button>
+            <button type="button" id="cancel-edit-button" onclick="resetForm()" style="display: none; background-color: #6c757d;">Cancel Edit</button>
+        </form>
+
+        <h2 style="margin-top: 30px;">Existing Events</h2>
+        <div id="event-list"></div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        document.getElementById('eventForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const editingId = document.getElementById('editingEventId').value;
+            const events = getEvents();
+
+            if (editingId) {
+                // Update existing event
+                const eventToUpdate = events.find(event => event.id === editingId);
+                if (eventToUpdate) {
+                    eventToUpdate.name = document.getElementById('eventName').value;
+                    eventToUpdate.date = document.getElementById('eventDate').value;
+                    eventToUpdate.venue = document.getElementById('eventVenue').value;
+                    eventToUpdate.time = document.getElementById('eventTime').value;
+                    alert(`Event "${eventToUpdate.name}" updated successfully!`);
+                }
+            } else {
+                // Create new event
+                const newEvent = {
+                    id: 'evt-' + uuid(),
+                    name: document.getElementById('eventName').value,
+                    date: document.getElementById('eventDate').value,
+                    venue: document.getElementById('eventVenue').value,
+                    time: document.getElementById('eventTime').value,
+                    attendees: []
+                };
+                events.push(newEvent);
+                alert(`Event "${newEvent.name}" created successfully!`);
+            }
+
+            saveEvents(events);
+            resetForm();
+            renderEvents();
+        });
+
+        function renderEvents() {
+            const events = getEvents();
+            const listElement = document.getElementById('event-list');
+            listElement.innerHTML = '';
+
+            if (events.length === 0) {
+                listElement.innerHTML = '<p>No events created yet.</p>';
+                return;
+            }
+
+            events.forEach(event => {
+                const card = document.createElement('div');
+                card.className = 'event-list-card'; // Use a new, specific class
+                card.innerHTML = `
+                    <div class="event-info-wrapper">
+                        <a href="index.html?eventId=${event.id}" style="text-decoration: none; color: inherit; display: block;">
+                            <strong>${event.name}</strong><br><small>${event.date} at ${event.venue}</small>
+                        </a>
+                    </div>
+                    <button onclick="event.stopPropagation(); editEvent('${event.id}')" class="edit-button">Edit</button>
+                `;
+                listElement.appendChild(card);
+            });
+        }
+
+        function editEvent(eventId) {
+            const events = getEvents();
+            const eventToEdit = events.find(event => event.id === eventId);
+            if (!eventToEdit) return;
+
+            document.getElementById('editingEventId').value = eventToEdit.id;
+            document.getElementById('eventName').value = eventToEdit.name;
+            document.getElementById('eventDate').value = eventToEdit.date;
+            document.getElementById('eventVenue').value = eventToEdit.venue;
+            document.getElementById('eventTime').value = eventToEdit.time;
+
+            document.getElementById('form-title').textContent = 'Edit Event';
+            document.getElementById('submit-button').textContent = 'Update Event';
+            document.getElementById('cancel-edit-button').style.display = 'inline-block';
+            window.scrollTo(0, 0); // Scroll to top to see the form
+        }
+
+        function resetForm() {
+            document.getElementById('eventForm').reset();
+            document.getElementById('editingEventId').value = '';
+            document.getElementById('form-title').textContent = 'Create New Event';
+            document.getElementById('submit-button').textContent = 'Create Event';
+            document.getElementById('cancel-edit-button').style.display = 'none';
+        }
+
+        window.onload = function() {
+            renderEvents();
+        };
+    </script>
+    <style>
+        .event-list-card {
+            position: relative;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex; /* Use flexbox */
+            align-items: center; /* Vertically align items */
+            justify-content: space-between; /* Push items to ends */
+        }
+        .event-info-wrapper {
+            flex-grow: 1; /* Allow the info to take up available space */
+            margin-right: 10px; /* Space between info and button */
+        }
+        .edit-button {
+            /* No longer needs absolute positioning with flexbox */
+            position: static; /* Reset position */
+            transform: none; /* Reset transform */
+            margin-left: auto; /* Push button to the right */
+            background-color: #17a2b8;
+            width: auto; /* Override the 100% width from styles.css on mobile */
+            padding: 10px 15px; /* Restore original padding */
+        }
+    </style>
+</body>
+</html>

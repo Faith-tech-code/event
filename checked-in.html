@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checked-in Attendees</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <button id="back-to-dashboard" style="float: right;">Back to Dashboard</button>
+        <h2 id="event-name-header" style="text-align: center; color: #555;"></h2>
+        <h1>Checked-in Attendees</h1>
+        <div id="checked-in-list"></div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const eventId = urlParams.get('eventId');
+            if (!eventId) {
+                window.location.href = 'events.html';
+                return;
+            }
+
+            const event = getEventById(eventId);
+            if (event) {
+                document.getElementById('event-name-header').textContent = `Checked-in for: ${event.name}`;
+                document.getElementById('back-to-dashboard').onclick = () => window.location.href = `index.html?eventId=${eventId}`;
+            }
+
+            const attendees = getAttendees(eventId);
+            const checkedInAttendees = attendees.filter(a => a.checkedIn);
+            const listElement = document.getElementById('checked-in-list');
+
+            if (checkedInAttendees.length === 0) {
+                listElement.innerHTML = '<p>No attendees have checked in yet.</p>';
+                return;
+            }
+
+            checkedInAttendees
+                .sort((a, b) => new Date(b.checkInTime) - new Date(a.checkInTime)) // Show most recent first
+                .forEach(attendee => {
+                    const card = document.createElement('div');
+                    card.className = 'attendee-card';
+                    card.innerHTML = `<strong>${attendee.names.join(', ')}</strong> checked in at ${new Date(attendee.checkInTime).toLocaleTimeString()}`;
+                    listElement.appendChild(card);
+                });
+        };
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('ServiceWorker registration successful with scope: ', registration.scope))
+                    .catch(err => console.log('ServiceWorker registration failed: ', err));
+            });
+        }
+    </script>
+</body>
+</html>

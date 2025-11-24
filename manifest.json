@@ -1,0 +1,9 @@
+{
+    "name": "Event Manager Demo",
+    "short_name": "EventManager",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#007bff",
+    "description": "A simple event management and check-in application."
+}

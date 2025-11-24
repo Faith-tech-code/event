@@ -1,0 +1,135 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background: #f4f4f4;
+    color: #333;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+input {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.button, button {
+    display: inline-block;
+    padding: 10px 15px;
+    border-radius: 5px;
+    border: none;
+    background: #007bff;
+    color: #fff;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    margin: 5px;
+}
+
+.button:hover, button:hover { background: #0056b3; }
+
+.nav-menu, .admin { margin-top: 20px; text-align: center; }
+
+.attendee-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+.attendee-info { flex-grow: 1; }
+#qr-code-container { width: 128px; height: 128px; }
+
+#video-container { text-align: center; margin-bottom: 10px; }
+#video { border: 1px solid #ccc; }
+#scan-log { list-style-type: none; padding: 0; }
+#scan-log li { background: #e9ecef; padding: 10px; margin-bottom: 5px; border-radius: 5px; }
+
+/* Toast Notification */
+.toast {
+    visibility: hidden;
+    min-width: 250px;
+    margin-left: -125px;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    padding: 16px;
+    position: fixed;
+    z-index: 10;
+    left: 50%;
+    bottom: 30px;
+    font-size: 17px;
+}
+
+.toast.show {
+    visibility: visible;
+    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+/* Animations to fade the toast in and out */
+@-webkit-keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+}
+
+/* Responsive Design for Mobile */
+@media screen and (max-width: 600px) {
+    body {
+        margin: 10px;
+        font-size: 16px; /* Improve readability on mobile */
+    }
+
+    .container {
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 1.8em;
+    }
+
+    .button, button {
+        width: 100%; /* Make buttons take full width */
+        box-sizing: border-box;
+        padding: 12px;
+        margin: 8px 0;
+    }
+
+    .attendee-card {
+        flex-direction: column; /* Stack info and QR code vertically */
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .qr-code-container {
+        align-self: center; /* Center the QR code */
+    }
+
+    #video {
+        width: 100%;
+        height: auto;
+    }
+}
+}

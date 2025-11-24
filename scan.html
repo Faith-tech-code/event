@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan QR Code</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <button id="back-to-dashboard" style="float: right;">Back to Dashboard</button>
+        <h2 id="event-name-header" style="text-align: center; color: #555;"></h2>
+        <h1>Scan Attendee Ticket</h1>
+        <div id="video-container">
+            <video id="video" width="300" height="225" playsinline></video>
+        </div>
+        <p>Align QR code within the frame to check-in attendee.</p>
+        <h2>Scan Log</h2>
+        <ul id="scan-log"></ul>
+        <div id="toast"></div>
+    </div>
+
+    <!-- QR Code Scanning Library -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="app.js"></script>
+    <script>
+        let eventId; // Make eventId globally accessible in this script
+
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            eventId = urlParams.get('eventId');
+            if (!eventId) {
+                window.location.href = 'events.html';
+                return;
+            }
+            const event = getEventById(eventId);
+            if (event) {
+                document.getElementById('event-name-header').textContent = `Scanning for: ${event.name}`;
+                document.getElementById('back-to-dashboard').onclick = () => window.location.href = `index.html?eventId=${eventId}`;
+            }
+        };
+        const video = document.getElementById('video');
+        const logElement = document.getElementById('scan-log');
+        let lastScanTime = 0;
+        const scanCooldown = 3000; // 3 seconds
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(function(stream) {
+                video.srcObject = stream;
+                video.play();
+                requestAnimationFrame(tick);
+            })
+            .catch(function(err) {
+                console.error("Error accessing camera: ", err);
+                alert("Could not access the camera. Please ensure you have a camera and have granted permission.");
+            });
+
+        function tick() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                const canvasElement = document.createElement('canvas');
+                const canvas = canvasElement.getContext('2d');
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+
+                const currentTime = new Date().getTime();
+                if (code && (currentTime - lastScanTime > scanCooldown)) {
+                    lastScanTime = currentTime;
+                    handleQRCode(code.data);
+                }
+            }
+            requestAnimationFrame(tick);
+        }
+
+        function handleQRCode(id) {
+            const attendees = getAttendees(eventId);
+            const attendee = attendees.find(a => a.id === id);
+            const li = document.createElement('li');
+
+            if (attendee) {
+                if (!attendee.checkedIn) {
+                    attendee.checkedIn = true;
+                    attendee.checkInTime = new Date().toISOString();
+                    saveAttendees(eventId, attendees);
+                    const successMsg = `SUCCESS: ${attendee.names.join(', ')} checked in.`;
+                    li.textContent = `${successMsg} at ${new Date(attendee.checkInTime).toLocaleTimeString()}`;
+                    li.style.backgroundColor = '#d4edda'; // green
+                    showToast(successMsg, 'success');
+                } else {
+                    const infoMsg = `INFO: ${attendee.names.join(', ')} is already checked in.`;
+                    li.textContent = infoMsg;
+                    li.style.backgroundColor = '#fff3cd'; // yellow
+                    showToast(infoMsg, 'info');
+                }
+            } else {
+                const errorMsg = `ERROR: Invalid QR Code scanned.`;
+                li.textContent = errorMsg;
+                li.style.backgroundColor = '#f8d7da'; // red
+                showToast(errorMsg, 'error');
+            }
+            logElement.prepend(li);
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show';
+
+            if (type === 'success') toast.style.backgroundColor = '#28a745';
+            else if (type === 'info') toast.style.backgroundColor = '#ffc107';
+            else if (type === 'error') toast.style.backgroundColor = '#dc3545';
+
+            setTimeout(() => { 
+                toast.className = toast.className.replace("show", ""); 
+            }, 3000);
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('ServiceWorker registration successful with scope: ', registration.scope))
+                    .catch(err => console.log('ServiceWorker registration failed: ', err));
+            });
+        }
+    </script>
+</body>
+</html>
