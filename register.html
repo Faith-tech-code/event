@@ -69,11 +69,8 @@ it     <script>
                 checkInTime: null
             };
 
-            const event = getEventById(eventId);
-            const attendees = event.attendees;
-            attendees.push(newAttendee);
-            saveAttendees(eventId, attendees);
-
+            // Use the new saveAttendee function
+            saveAttendee(eventId, newAttendee);
             alert(`Ticket for "${newAttendee.names.join(', ')}" registered successfully!`);
             this.reset(); // Clear the form
             updateRegistrationForm(); // Reset fields to default
