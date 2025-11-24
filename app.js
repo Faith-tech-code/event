@@ -39,6 +39,12 @@ function saveAttendees(eventId, attendees) {
     }
 }
 
+// Get tickets for a specific event (alias for getAttendees)
+function getTicketsForEvent(eventId) {
+    const event = getEventById(eventId);
+    return event ? event.attendees : [];
+}
+
 function goHome() {
     window.location.href = 'events.html';
 }
