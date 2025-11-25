@@ -1,19 +1,12 @@
 const CACHE_NAME = 'event-manager-v3';
+// Only cache the core app shell. Other assets will be cached on demand by the fetch handler.
 const urlsToCache = [
     '/',
     'index.html',
-    'register.html',
-    'dashboard.html',
-    'tickets.html',
-    'scan.html',
-    'checked-in.html',
     'styles.css',
     'app.js',
-    'manifest.json',
-    'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-    'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+    'events-data.js',
+    'manifest.json'
 ];
 
 // Install a service worker
