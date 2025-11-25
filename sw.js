@@ -22,24 +22,23 @@ self.addEventListener('install', event => {
 
 // Cache and return requests
 self.addEventListener('fetch', event => {
-    // Use a "Stale-While-Revalidate" strategy
     event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                // Cache hit - return response from cache, but also fetch a new version from the network.
-                const fetchPromise = fetch(event.request).then(networkResponse => {
-                    caches.open(CACHE_NAME).then(cache => {
-                        cache.put(event.request, networkResponse.clone());
-                    });
-                    return networkResponse;
+        caches.match(event.request).then(cachedResponse => {
+            // Stale-While-Revalidate strategy
+            const fetchPromise = fetch(event.request).then(networkResponse => {
+                // Clone the response to put it in the cache.
+                const responseToCache = networkResponse.clone();
+                caches.open(CACHE_NAME).then(cache => {
+                    cache.put(event.request, responseToCache);
                 });
+                // Return the original network response to the browser.
+                return networkResponse;
+            });
 
-                // Return the cached response immediately if available, otherwise wait for the network
-                if (response) {
-                    return response;
-                }
-                return fetchPromise;
-            })
+            // Return the cached response immediately if it exists,
+            // otherwise, wait for the network response.
+            return cachedResponse || fetchPromise;
+        })
     );
 });
 
