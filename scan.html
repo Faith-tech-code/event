@@ -81,16 +81,18 @@
         }
 
         function handleQRCode(id) {
-            const attendees = getAttendees(eventId);
-            const attendee = attendees.find(a => a.id === id);
+            // Get ALL tickets from storage, not just for this event
+            const allTickets = getAllTickets();
+            const ticketIndex = allTickets.findIndex(t => t.id === id && t.eventId === eventId);
             const li = document.createElement('li');
 
-            if (attendee) {
-                if (!attendee.checkedIn) {
-                    attendee.checkedIn = true;
-                    attendee.checkInTime = new Date().toISOString();
-                    saveAttendees(eventId, attendees);
-                    const successMsg = `SUCCESS: ${attendee.names.join(', ')} checked in.`;
+            if (ticketIndex !== -1) {
+                const attendee = allTickets[ticketIndex];
+                if (!attendee.checkedIn) { // First time check-in
+                    allTickets[ticketIndex].checkedIn = true;
+                    allTickets[ticketIndex].checkInTime = new Date().toISOString();
+                    saveAllTickets(allTickets); // Save the entire updated list
+                    const successMsg = `SUCCESS: ${allTickets[ticketIndex].names.join(', ')} checked in.`;
                     li.textContent = `${successMsg} at ${new Date(attendee.checkInTime).toLocaleTimeString()}`;
                     li.style.backgroundColor = '#d4edda'; // green
                     showToast(successMsg, 'success');

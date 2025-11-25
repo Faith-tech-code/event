@@ -26,8 +26,12 @@
         <div id="event-list"></div>
     </div>
 
+    <script src="events-data.js"></script>
     <script src="app.js"></script>
     <script>
+        // CRITICAL: Initialize data to prevent overwriting existing events on load.
+        initializeData();
+
         document.getElementById('eventForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -52,7 +56,6 @@
                     date: document.getElementById('eventDate').value,
                     venue: document.getElementById('eventVenue').value,
                     time: document.getElementById('eventTime').value,
-                    attendees: []
                 };
                 events.push(newEvent);
                 alert(`Event "${newEvent.name}" created successfully!`);
@@ -114,6 +117,7 @@
         }
 
         window.onload = function() {
+            initializeData(); // Also call here to be safe
             renderEvents();
         };
     </script>

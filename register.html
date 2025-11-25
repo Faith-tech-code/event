@@ -34,6 +34,7 @@
             <input type="email" id="email" placeholder="Email (Optional)" autocomplete="email">
             <input type="tel" id="phone" placeholder="Phone Number (Optional)" autocomplete="tel">
             <button type="submit">Register</button>
+            <div id="toast"></div>
         </form>
     </div>
 
@@ -56,7 +57,7 @@
             });
 
             const newAttendee = {
-                id: uuid(),
+                id: 'tkt-' + uuid(), // CRITICAL: ID must match the format the scanner expects
                 names: names,
                 email: document.getElementById('email').value,
                 phone: document.getElementById('phone').value,
@@ -66,7 +67,7 @@
 
             // Use the new saveAttendee function
             saveAttendee(eventId, newAttendee);
-            alert(`Ticket for "${newAttendee.names.join(', ')}" registered successfully!`);
+            showToast(`Registered: ${newAttendee.names.join(', ')}`, 'success');
             this.reset(); // Clear the form
             updateRegistrationForm(); // Reset fields to default
         });
@@ -115,6 +116,24 @@
 
             updateRegistrationForm();
         };
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'show';
+
+            if (type === 'success') {
+                toast.style.backgroundColor = '#28a745';
+            } else if (type === 'error') {
+                toast.style.backgroundColor = '#dc3545';
+            } else {
+                toast.style.backgroundColor = '#333';
+            }
+
+            setTimeout(() => { 
+                toast.className = toast.className.replace("show", ""); 
+            }, 3000);
+        }
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
