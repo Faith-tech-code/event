@@ -66,3 +66,12 @@ function resetTicketData() {
     const { tickets } = getInitialData();
     localStorage.setItem('tickets', JSON.stringify(tickets));
 }
+
+// Function to clear all tickets and log out
+function clearAllTickets() {
+    if (confirm('Are you sure you want to delete ALL ticket data? This will also log you out.')) {
+        localStorage.removeItem('tickets');
+        sessionStorage.removeItem('isLoggedIn');
+        window.location.reload(); // Reload to show the login screen
+    }
+}
